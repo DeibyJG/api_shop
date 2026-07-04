@@ -6,13 +6,23 @@ const jwt = require('jsonwebtoken');
 exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, address } = req.body;
+
+    // --- NUEVA VALIDACIÓN: Verificar si el correo ya existe ---
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      // Retornamos 400 (Bad Request) con un mensaje claro para el frontend
+      return res.status(400).json({ message: 'El correo electrónico ya está en uso.' });
+    }
+    // ---------------------------------------------------------
+
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const newUser = new User({ name, email, password: hashedPassword, phone, address, role: 'cliente' });
     await newUser.save();
     res.status(201).json({ message: 'Cliente registrado exitosamente' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Cambiamos "error" por "message" para compatibilidad con el frontend
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -20,13 +30,21 @@ exports.register = async (req, res) => {
 exports.registerAdmin = async (req, res) => {
   try {
     const { name, email, password, phone, address } = req.body;
+
+    // --- NUEVA VALIDACIÓN: Verificar si el correo ya existe ---
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'El correo electrónico ya está en uso.' });
+    }
+    // ---------------------------------------------------------
+
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const newUser = new User({ name, email, password: hashedPassword, phone, address, role: 'admin' });
     await newUser.save();
     res.status(201).json({ message: 'Administrador registrado exitosamente' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -36,7 +54,7 @@ exports.getUsers = async (req, res) => {
     const users = await User.find().select('-password'); // Excluimos la contraseña por seguridad
     res.json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -55,7 +73,7 @@ exports.login = async (req, res) => {
 
     res.json({ token, role: user.role, user: { name: user.name, email: user.email } });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -66,6 +84,6 @@ exports.getUserById = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
