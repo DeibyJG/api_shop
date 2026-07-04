@@ -40,9 +40,8 @@ router.get('/', productController.getProducts);
  *       201:
  *         description: Producto creado exitosamente
  */
-router.post('/', verifyToken, verifyAdmin, productController.createProduct);
-
 router.get('/:id', productController.getProductById);
+router.post('/', verifyToken, verifyAdmin, productController.createProduct);
 router.put('/:id', verifyToken, verifyAdmin, productController.updateProduct);
 router.delete('/:id', verifyToken, verifyAdmin, productController.deleteProduct);
 
